@@ -95,6 +95,7 @@ class ExtraRulesHandler(ExtraRuleHandlerBase):
             r"\.liveadvert\.com$": [(self.switch_to_down_if_status_code, 404)],
             r"\.myhuaweicloudz\.com$": [(self.switch_to_down_if_status_code, 403)],
             r"\.skyrock\.com$": [(self.switch_to_down_if_status_code, 404)],
+            r"\.squarespace.com$": [(self.switch_to_down_if_status_code, 404)],
             r"\.sz.id$": [(self.switch_to_down_if_status_code, 302)],
             r"\.translate\.goog$": [(self.switch_to_down_if_status_code, 403)],
             r"\.tumblr\.com$": [(self.switch_to_down_if_status_code, 404)],
