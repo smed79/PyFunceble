@@ -91,11 +91,16 @@ class ExtraRulesHandler(ExtraRuleHandlerBase):
             r"\.github\.io$": [(self.switch_to_down_if_status_code, 404)],
             r"\.glitchz\.me$": [(self.switch_to_down_if_status_code, 403)],
             r"\.godaddysites\.com$": [(self.switch_to_down_if_status_code, 404)],
-            r"\.hpg.com.br$": [(self.switch_to_down_if_status_code, 404)],
+            r"\.hpg\.com\.br$": [(self.switch_to_down_if_status_code, 404)],
+            r"^heylink\.me$": [(self.switch_to_down_if_status_code, 410)],
+            r"^heyl\.ink$": [(self.switch_to_down_if_status_code, 410)],
             r"\.imgur\.com$": [self.handle_imgur_dot_com],
             r"\.liveadvert\.com$": [(self.switch_to_down_if_status_code, 404)],
             r"\.myhuaweicloudz\.com$": [(self.switch_to_down_if_status_code, 403)],
             r"\.skyrock\.com$": [(self.switch_to_down_if_status_code, 404)],
+            r"\.squarespace.com$": [(self.switch_to_down_if_status_code, 404),
+                    self.handle_squarespace_com,
+            ],
             r"\.sz.id$": [(self.switch_to_down_if_status_code, 302)],
             r"\.translate\.goog$": [(self.switch_to_down_if_status_code, 403)],
             r"\.tumblr\.com$": [(self.switch_to_down_if_status_code, 404)],
@@ -256,6 +261,25 @@ class ExtraRulesHandler(ExtraRuleHandlerBase):
             regex_vercel,
             method=self.switch_to_down,
             allow_redirects=False,
+        )
+
+        return self
+
+    def handle_squarespace_com(self) -> "ExtraRulesHandler":
+        """
+        Handles the :code:`wordpress.com` case.
+
+        .. warning::
+            This method assume that we know that we are handling a blogspot domain.
+        """
+
+        regex_squarespace = [r"This&nbsp;site&nbsp;has&nbsp;been&nbsp;deleted&nbsp;by&nbsp;the&nbsp;owner\."]
+
+        self.do_on_body_match(
+            self.req_url,
+            regex_squarespace,
+            method=self.switch_to_down,
+            allow_redirects=True,
         )
 
         return self
