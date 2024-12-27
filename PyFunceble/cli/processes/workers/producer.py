@@ -106,12 +106,25 @@ class ProducerWorker(WorkerBase):
 
     def __post_init__(self) -> None:
         skip_columns = []
+        extra_formatters = {}
 
         if not PyFunceble.storage.CONFIGURATION.cli_testing.display_mode.registrar:
             skip_columns.append("registrar")
 
-        self.stdout_printer = StdoutPrinter(skip_column=skip_columns)
-        self.file_printer = FilePrinter(skip_column=skip_columns)
+        if not PyFunceble.storage.CONFIGURATION.cli_testing.display_mode.datetime:
+            skip_columns.append("tested_at")
+        else:
+            # pylint: disable=line-too-long
+            extra_formatters["tested_at"] = lambda x: x.strftime(
+                PyFunceble.storage.CONFIGURATION.cli_testing.display_mode.datetime_format
+            )
+
+        self.stdout_printer = StdoutPrinter(
+            skip_column=skip_columns, extra_formatters=extra_formatters
+        )
+        self.file_printer = FilePrinter(
+            skip_column=skip_columns, extra_formatters=extra_formatters
+        )
         self.whois_dataset = get_whois_dataset_object(db_session=self.db_session)
         self.inactive_dataset = get_inactive_dataset_object(db_session=self.db_session)
         self.continue_dataset = get_continue_databaset_object(

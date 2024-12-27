@@ -300,6 +300,20 @@ cli_testing:
     # CLI Argument: --max-registrar
     max_registrar: 15
 
+    # Enable/Disable the printing of the datetime of the test.
+    #
+    # CLI Argument: --display-datetime
+    datetime: no
+
+    # The format to use when displaying the datetime of the test.
+    #
+    # WARNING:
+    #   This parameter is only taken into consideration when `datetime` is set
+    #   to `yes`.
+    #
+    # CLI Argument: --display-datetime-fmt
+    datetime_format: "%Y-%m-%d %H:%M:%S"
+
   testing_mode:
     # Provides and select the testing mode.
     #
