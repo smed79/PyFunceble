@@ -52,7 +52,7 @@ License:
 """
 
 import os
-from typing import Optional
+from typing import List, Optional
 
 from box import Box
 from dotenv import load_dotenv
@@ -60,7 +60,7 @@ from dotenv import load_dotenv
 from PyFunceble.storage_facility import get_config_directory
 
 PROJECT_NAME: str = "PyFunceble"
-PROJECT_VERSION: str = "4.3.0a13.dev (Blue Duckling: Tulip)"
+PROJECT_VERSION: str = "4.3.0a14.dev (Blue Duckling: Tulip)"
 
 DISTRIBUTED_CONFIGURATION_FILENAME: str = ".PyFunceble_production.yaml"
 
@@ -107,6 +107,7 @@ STATUS: Optional[Box] = Box(
 )
 HTTP_CODES: Optional[Box] = Box({})
 PLATFORM: Optional[Box] = Box({})
+SPECIAL_RULES: Optional[List[dict]] = []
 LINKS: Optional[Box] = Box({})
 PROXY: Optional[Box] = Box({})
 

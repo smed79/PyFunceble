@@ -651,6 +651,9 @@ class ConfigLoader:
         if "proxy" in config and config["proxy"]:
             PyFunceble.storage.PROXY = Box(config["proxy"])
 
+        if "special_rules" in config and config["special_rules"]:
+            PyFunceble.storage.SPECIAL_RULES = config["special_rules"]
+
         # Early load user agents to allow usage of defined user agents.
         UserAgentDataset().get_latest()
 
@@ -676,6 +679,7 @@ class ConfigLoader:
             PyFunceble.storage.PLATFORM = Box({})
             PyFunceble.storage.LINKS = Box({})
             PyFunceble.storage.PROXY = Box({})
+            PyFunceble.storage.SPECIAL_RULES = Box({})
         except (AttributeError, TypeError):  # pragma: no cover ## Safety.
             pass
 

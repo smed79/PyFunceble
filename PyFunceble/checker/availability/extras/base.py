@@ -328,7 +328,7 @@ class ExtraRuleHandlerBase:
         def handle_regex_match_mode(_req: requests.Response):
             matches2search_result = {}
 
-            for header, loc_matches in matches:
+            for header, loc_matches in matches.items():
                 matches2search_result[header] = False
 
                 if header not in _req.headers:

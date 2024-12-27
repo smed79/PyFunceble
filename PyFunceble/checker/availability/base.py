@@ -64,6 +64,7 @@ import PyFunceble.storage
 from PyFunceble.checker.availability.extras.base import ExtraRuleHandlerBase
 from PyFunceble.checker.availability.extras.dns import DNSRulesHandler
 from PyFunceble.checker.availability.extras.etoxic import EToxicHandler
+from PyFunceble.checker.availability.extras.external import ExternalRulesHandler
 from PyFunceble.checker.availability.extras.rules import ExtraRulesHandler
 from PyFunceble.checker.availability.extras.subject_switch import (
     SubjectSwitchRulesHandler,
@@ -174,6 +175,7 @@ class AvailabilityCheckerBase(CheckerBase):
             DNSRulesHandler(),
             EToxicHandler(),
             ExtraRulesHandler(),
+            ExternalRulesHandler(rulesets=PyFunceble.storage.SPECIAL_RULES),
         ]
         self.db_session = db_session
 
