@@ -50,7 +50,6 @@ License:
     limitations under the License.
 """
 
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.availability.extras.base import ExtraRuleHandlerBase
 
@@ -127,7 +126,7 @@ class ParkedRulesHandler(ExtraRuleHandlerBase):
                 "Finished to check %r against our own set of parked rules.",
                 self.status.idna_subject,
             )
-        except PyFunceble.factory.Requester.exceptions.RequestException:
+        except self.requester.exceptions.RequestException:
             pass
 
         return self

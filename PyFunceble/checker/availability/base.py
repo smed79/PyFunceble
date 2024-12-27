@@ -60,7 +60,6 @@ from sqlalchemy.orm import Session
 
 import PyFunceble.checker.utils.whois
 import PyFunceble.facility
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.availability.extras.base import ExtraRuleHandlerBase
 from PyFunceble.checker.availability.extras.dns import DNSRulesHandler

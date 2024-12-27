@@ -66,6 +66,7 @@ from yaml.error import MarkedYAMLError
 import PyFunceble.cli.storage
 import PyFunceble.storage
 from PyFunceble.config.compare import ConfigComparison
+from PyFunceble.dataset.user_agent import UserAgentDataset
 from PyFunceble.downloader.iana import IANADownloader
 from PyFunceble.downloader.public_suffix import PublicSuffixDownloader
 from PyFunceble.downloader.user_agents import UserAgentsDownloader
@@ -438,19 +439,20 @@ class ConfigLoader:
                 else:
                     destination = dest
 
-                DownloadHelper(src).download_text(destination=destination)
-
-        if not self.is_already_loaded():
-            self.install_missing_infrastructure_files()
-            self.download_dynamic_infrastructure_files()
-            download_remote_config(
-                self.remote_config_location, self.path_to_remote_config
-            )
-            download_remote_config(self.path_to_config)
+                DownloadHelper(
+                    src,
+                    certificate_validation=(
+                        PyFunceble.storage.CONFIGURATION.verify_ssl_certificate
+                        if PyFunceble.storage.CONFIGURATION
+                        else True
+                    ),
+                    own_proxy_handler=True,
+                    proxies=config["proxies"],
+                ).download_text(destination=destination)
 
         try:
             config = self.dict_helper.from_yaml_file(self.path_to_config)
-        except MarkedYAMLError:
+        except (MarkedYAMLError, FileNotFoundError):
             self.file_helper.set_path(self.path_to_default_config).copy(
                 self.path_to_config
             )
@@ -474,6 +476,32 @@ class ConfigLoader:
 
             self.dict_helper.set_subject(config).to_yaml_file(self.path_to_config)
 
+        if self.file_helper.set_path(self.path_to_overwrite_config).exists():
+            # Early load of the overwrite configuration to allow usage of defined
+            # proxy settings.
+            overwrite_data = self.dict_helper.from_yaml_file(
+                self.path_to_overwrite_config
+            )
+
+            if isinstance(overwrite_data, dict):
+                config = Merge(overwrite_data).into(config)
+        else:  # pragma: no cover  ## Just make it visible to end-user.
+            self.file_helper.write("")
+
+        # Now we preset the storage to enforce the usage of the configuration
+        # in any downloads.
+        PyFunceble.storage.CONFIGURATION = Box(
+            config,
+        )
+
+        if not self.is_already_loaded():
+            self.install_missing_infrastructure_files()
+            self.download_dynamic_infrastructure_files()
+            download_remote_config(
+                self.remote_config_location, self.path_to_remote_config
+            )
+            download_remote_config(self.path_to_config)
+
         if (
             self.path_to_remote_config
             and self.file_helper.set_path(self.path_to_remote_config).exists()
@@ -484,14 +512,14 @@ class ConfigLoader:
                 config = Merge(remote_data).into(config)
 
         if self.file_helper.set_path(self.path_to_overwrite_config).exists():
+            # Load the overwrite configuration again to ensure that user defined
+            # settings are always applied - last one wins.
             overwrite_data = self.dict_helper.from_yaml_file(
                 self.path_to_overwrite_config
             )
 
             if isinstance(overwrite_data, dict):
                 config = Merge(overwrite_data).into(config)
-        else:  # pragma: no cover  ## Just make it visible to end-user.
-            self.file_helper.write("")
 
         return config
 
@@ -561,6 +589,9 @@ class ConfigLoader:
 
         if "proxy" in config and config["proxy"]:
             PyFunceble.storage.PROXY = Box(config["proxy"])
+
+        # Early load user agents to allow usage of defined user agents.
+        UserAgentDataset().get_latest()
 
         return self
 

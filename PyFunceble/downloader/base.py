@@ -107,6 +107,7 @@ class DownloaderBase:
     _config_dir: Optional[str] = None
     _destination: Optional[str] = None
     _download_link: Optional[str] = None
+    _download_helper: Optional[DownloadHelper] = None
 
     dict_helper: Optional[DictHelper] = None
 
@@ -129,6 +130,17 @@ class DownloaderBase:
 
         if self.DEFAULT_FILENAME is not None:
             self.destination = os.path.join(self.config_dir, self.DEFAULT_FILENAME)
+
+        self._download_helper = DownloadHelper(
+            self.download_link,
+            own_proxy_handler=True,
+            proxies=PyFunceble.storage.PROXY,
+            certificate_validation=(
+                PyFunceble.storage.CONFIGURATION.verify_ssl_certificate
+                if PyFunceble.storage.CONFIGURATION
+                else True
+            ),
+        )
 
     @property
     def authorized(self) -> bool:
@@ -343,8 +355,6 @@ class DownloaderBase:
             if not hasattr(self, "download_link") or not self.download_link:
                 raise PyFunceble.downloader.exceptions.NoDownloadLinkGiven()
 
-            if DownloadHelper(self.download_link).download_text(
-                destination=self.destination
-            ):
+            if self._download_helper.download_text(destination=self.destination):
                 self.set_current_downtime()
                 self.save_all_downtimes()

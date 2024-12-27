@@ -58,8 +58,8 @@ from typing import Optional, Union
 import requests
 import requests.exceptions
 import urllib3.exceptions
+from box import Box
 
-import PyFunceble.facility
 import PyFunceble.storage
 from PyFunceble.dataset.user_agent import UserAgentDataset
 from PyFunceble.query.dns.query_tool import DNSQueryTool
@@ -132,6 +132,8 @@ class Requester:
     _max_redirects: int = 60
     _proxy_pattern: dict = {}
 
+    config: Optional[Box] = None
+
     session: Optional[requests.Session] = None
     dns_query_tool: Optional[DNSQueryTool] = None
 
@@ -144,7 +146,13 @@ class Requester:
         max_redirects: Optional[int] = None,
         dns_query_tool: Optional[DNSQueryTool] = None,
         proxy_pattern: Optional[dict] = None,
+        config: Optional[Box] = None,
     ) -> None:
+        if config is not None:
+            self.config = config
+        else:
+            self.config = Box({}, default_box=True)
+
         if max_retries is not None:
             self.max_retries = max_retries
         else:
@@ -207,26 +215,44 @@ class Requester:
             @functools.wraps(func)
             def wrapper(self, *args, **kwargs):
                 # pylint: disable=no-member
-                PyFunceble.facility.Logger.debug(
-                    "Started %r request to %r with %r",
-                    verb.upper(),
-                    args[0],
-                    kwargs,
-                )
                 req = getattr(self.session, verb.lower())(*args, **kwargs)
-
-                PyFunceble.facility.Logger.debug(
-                    "Finished %r request to %r with %r",
-                    verb.upper(),
-                    args[0],
-                    kwargs,
-                )
-
                 return req
 
             return wrapper
 
         return request_method
+
+    @property
+    def headers(self) -> dict:
+        """
+        Provides the headers to use.
+        """
+
+        return self.session.headers
+
+    @headers.setter
+    @recreate_session
+    def headers(self, value: dict) -> None:
+        """
+        Sets the headers to use.
+
+        :param value:
+            The headers to set.
+        """
+
+        self.session.headers.update(value)
+
+    def set_config(self, config: Box) -> "Requester":
+        """
+        Sets the configuration to work with.
+
+        :param config:
+            The configuration to work with.
+        """
+
+        self.config = config
+
+        return self
 
     @property
     def max_retries(self) -> int:
@@ -276,13 +302,12 @@ class Requester:
         Try to guess the value from the configuration and set it.
         """
 
-        if PyFunceble.facility.ConfigLoader.is_already_loaded() and bool(
-            PyFunceble.storage.CONFIGURATION.max_http_retries
-        ):
-            self.set_max_retries(
-                bool(PyFunceble.storage.CONFIGURATION.max_http_retries)
-            )
-        else:
+        try:
+            if isinstance(self.config.max_http_retries, int):
+                self.set_max_retries(self.config.max_http_retries)
+            else:
+                self.set_max_retries(self.STD_MAX_RETRIES)
+        except:  # pylint: disable=bare-except
             self.set_max_retries(self.STD_MAX_RETRIES)
 
         return self
@@ -373,14 +398,13 @@ class Requester:
         Try to guess the value from the configuration and set it.
         """
 
-        if PyFunceble.facility.ConfigLoader.is_already_loaded() and bool(
-            PyFunceble.storage.CONFIGURATION.verify_ssl_certificate
-        ):
-            self.set_verify_certificate(
-                bool(PyFunceble.storage.CONFIGURATION.verify_ssl_certificate)
-            )
-        else:
-            self.set_verify_certificate(self.STD_VERIFY_CERTIFICATE)
+        try:
+            if isinstance(self.config.verify_ssl_certificate, bool):
+                self.set_verify_certificate(self.config.verify_ssl_certificate)
+            else:
+                self.set_verify_certificate(self.STD_VERIFY_CERTIFICATE)
+        except:  # pylint: disable=bare-except
+            self.set_max_retries(self.STD_MAX_RETRIES)
 
         return self
 
@@ -433,11 +457,12 @@ class Requester:
         Try to guess the value from the configuration and set it.
         """
 
-        if PyFunceble.facility.ConfigLoader.is_already_loaded() and bool(
-            PyFunceble.storage.CONFIGURATION.lookup.timeout
-        ):
-            self.set_timeout(PyFunceble.storage.CONFIGURATION.lookup.timeout)
-        else:
+        try:
+            if isinstance(self.config.lookup.timeout, (int, float)):
+                self.set_timeout(self.config.lookup.timeout)
+            else:
+                self.set_timeout(self.STD_TIMEOUT)
+        except:  # pylint: disable=bare-except
             self.set_timeout(self.STD_TIMEOUT)
 
         return self
@@ -485,11 +510,12 @@ class Requester:
         Try to guess the value from the configuration and set it.
         """
 
-        if PyFunceble.facility.ConfigLoader.is_already_loaded() and bool(
-            PyFunceble.storage.CONFIGURATION.proxy
-        ):
-            self.set_proxy_pattern(PyFunceble.storage.CONFIGURATION.proxy)
-        else:
+        try:
+            if self.config.proxy:
+                self.set_proxy_pattern(self.config.proxy)
+            else:
+                self.set_proxy_pattern({})
+        except:  # pylint: disable=bare-except
             self.set_proxy_pattern({})
 
         return self
@@ -551,7 +577,10 @@ class Requester:
             ),
         )
 
-        custom_headers = {"User-Agent": UserAgentDataset().get_latest()}
+        if PyFunceble.storage.USER_AGENTS:
+            custom_headers = {"User-Agent": UserAgentDataset().get_latest()}
+        else:
+            custom_headers = {}
 
         session.headers.update(custom_headers)
 

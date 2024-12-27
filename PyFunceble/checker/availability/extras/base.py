@@ -56,10 +56,11 @@ from typing import Callable, Dict, List, Optional, Union
 
 import requests
 
-import PyFunceble.factory
+import PyFunceble.storage
 from PyFunceble.checker.availability.status import AvailabilityCheckerStatus
 from PyFunceble.helpers.regex import RegexHelper
 from PyFunceble.query.dns.query_tool import DNSQueryTool
+from PyFunceble.query.requests.requester import Requester
 
 
 class ExtraRuleHandlerBase:
@@ -76,13 +77,14 @@ class ExtraRuleHandlerBase:
     req: Optional[requests.Response] = None
     dns_query_tool: Optional[DNSQueryTool] = None
     regex_helper: Optional[RegexHelper] = None
+    requester: Optional[Requester] = None
 
     def __init__(self, status: Optional[AvailabilityCheckerStatus] = None) -> None:
         if status is not None:
             self.status = status
 
-        # Be sure that all settings are loaded proprely!!
-        PyFunceble.factory.Requester.guess_all_settings()
+        self.requester = Requester(config=PyFunceble.storage.CONFIGURATION)
+
         self.dns_query_tool = DNSQueryTool()
         self.regex_helper = RegexHelper()
 
@@ -227,9 +229,7 @@ class ExtraRuleHandlerBase:
             Whether we shoold follow the redirection - or not.
         """
 
-        self.req = PyFunceble.factory.Requester.get(
-            self.req_url, allow_redirects=allow_redirects
-        )
+        self.req = self.requester.get(self.req_url, allow_redirects=allow_redirects)
 
         return self
 
@@ -272,18 +272,18 @@ class ExtraRuleHandlerBase:
                 method()
 
         try:
-            req = PyFunceble.factory.Requester.get(url, allow_redirects=allow_redirects)
+            req = self.requester.get(url, allow_redirects=allow_redirects)
 
             if match_mode == "regex":
                 handle_regex_match_mode(req)
             else:
                 handle_string_match_mode(req)
         except (
-            PyFunceble.factory.Requester.exceptions.RequestException,
-            PyFunceble.factory.Requester.exceptions.InvalidURL,
-            PyFunceble.factory.Requester.exceptions.Timeout,
-            PyFunceble.factory.Requester.exceptions.ConnectionError,
-            PyFunceble.factory.Requester.urllib3_exceptions.InvalidHeader,
+            self.requester.exceptions.RequestException,
+            self.requester.exceptions.InvalidURL,
+            self.requester.exceptions.Timeout,
+            self.requester.exceptions.ConnectionError,
+            self.requester.urllib3_exceptions.InvalidHeader,
             socket.timeout,
         ):
             pass
@@ -363,18 +363,18 @@ class ExtraRuleHandlerBase:
                 method()
 
         try:
-            req = PyFunceble.factory.Requester.get(url, allow_redirects=allow_redirects)
+            req = self.requester.get(url, allow_redirects=allow_redirects)
 
             if match_mode == "regex":
                 handle_regex_match_mode(req)
             else:
                 handle_string_match_mode(req)
         except (
-            PyFunceble.factory.Requester.exceptions.RequestException,
-            PyFunceble.factory.Requester.exceptions.InvalidURL,
-            PyFunceble.factory.Requester.exceptions.Timeout,
-            PyFunceble.factory.Requester.exceptions.ConnectionError,
-            PyFunceble.factory.Requester.urllib3_exceptions.InvalidHeader,
+            self.requester.exceptions.RequestException,
+            self.requester.exceptions.InvalidURL,
+            self.requester.exceptions.Timeout,
+            self.requester.exceptions.ConnectionError,
+            self.requester.urllib3_exceptions.InvalidHeader,
             socket.timeout,
         ):
             pass

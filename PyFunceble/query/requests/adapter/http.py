@@ -55,7 +55,6 @@ import urllib.parse
 import requests
 
 import PyFunceble.facility
-import PyFunceble.storage
 from PyFunceble.query.requests.adapter.base import RequestAdapterBase
 
 
@@ -117,10 +116,10 @@ class RequestHTTPAdapter(RequestAdapterBase):
             request.headers["Host"] = parsed_url.hostname
         else:
             self.poolmanager.connection_pool_kw.pop(
-                "server_hostname", PyFunceble.storage.NOT_RESOLVED_STD_HOSTNAME
+                "server_hostname", self.NOT_RESOLVED_STD_HOSTNAME
             )
             self.poolmanager.connection_pool_kw.pop(
-                "assert_hostname", PyFunceble.storage.NOT_RESOLVED_STD_HOSTNAME
+                "assert_hostname", self.NOT_RESOLVED_STD_HOSTNAME
             )
 
             return self.fake_response()

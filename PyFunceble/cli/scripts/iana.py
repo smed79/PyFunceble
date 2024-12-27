@@ -54,6 +54,7 @@ import concurrent.futures
 from typing import Dict, Optional, Tuple
 
 import PyFunceble.facility
+import PyFunceble.storage
 from PyFunceble.dataset.iana import IanaDataset
 from PyFunceble.helpers.dict import DictHelper
 from PyFunceble.helpers.download import DownloadHelper
@@ -265,7 +266,16 @@ class IanaDBGenerator:
         """
 
         raw_data = (
-            DownloadHelper(self.UPSTREAM_LINK)
+            DownloadHelper(
+                self.UPSTREAM_LINK,
+                certificate_validation=(
+                    PyFunceble.storage.CONFIGURATION.verify_ssl_certificate
+                    if PyFunceble.storage.CONFIGURATION
+                    else True
+                ),
+                own_proxy_handler=True,
+                proxies=PyFunceble.storage.PROXY,
+            )
             .download_text()
             .split('<span class="domain tld">')
         )

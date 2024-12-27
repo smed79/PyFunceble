@@ -55,7 +55,6 @@ from typing import Optional
 from box import Box
 
 import PyFunceble.facility
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.availability.extras.base import ExtraRuleHandlerBase
 from PyFunceble.checker.availability.status import AvailabilityCheckerStatus
@@ -99,15 +98,16 @@ class ExtraRulesHandler(ExtraRuleHandlerBase):
             r"\.myhuaweicloudz\.com$": [(self.switch_to_down_if_status_code, 403)],
             r"^scnv\.io$": [(self.switch_to_down_if_status_code, 404)],
             r"\.skyrock\.com$": [(self.switch_to_down_if_status_code, 404)],
-            r"\.squarespace.com$": [(self.switch_to_down_if_status_code, 404),
-                    self.handle_squarespace_com,
+            r"\.squarespace.com$": [
+                (self.switch_to_down_if_status_code, 404),
+                self.handle_squarespace_com,
             ],
             r"\.sz.id$": [(self.switch_to_down_if_status_code, 302)],
             r"\.translate\.goog$": [(self.switch_to_down_if_status_code, 403)],
             r"\.tumblr\.com$": [(self.switch_to_down_if_status_code, 404)],
             r"\.vercel\.app$": [
                 (self.switch_to_down_if_status_code, "451"),
-                self.handle_vercel_dot_app
+                self.handle_vercel_dot_app,
             ],
             r"\.web\.app$": [(self.switch_to_down_if_status_code, 404)],
             r"\.wix\.com$": [(self.switch_to_down_if_status_code, 404)],
@@ -227,9 +227,7 @@ class ExtraRulesHandler(ExtraRuleHandlerBase):
             This method are assuming we are handling a imgur.com subdomain.
         """
 
-        req = PyFunceble.factory.Requester.get(
-            self.req_url_https, allow_redirects=False
-        )
+        req = self.requester.get(self.req_url_https, allow_redirects=False)
         username = self.status.netloc.replace(".imgur.com", "")
 
         if "Location" in req.headers:
@@ -274,7 +272,10 @@ class ExtraRulesHandler(ExtraRuleHandlerBase):
             This method assume that we know that we are handling a blogspot domain.
         """
 
-        regex_squarespace = [r"This&nbsp;site&nbsp;has&nbsp;been&nbsp;deleted&nbsp;by&nbsp;the&nbsp;owner\."]
+        regex_squarespace = [
+            r"This&nbsp;site&nbsp;has&nbsp;been&nbsp;deleted"
+            r"&nbsp;by&nbsp;the&nbsp;owner\."
+        ]
 
         self.do_on_body_match(
             self.req_url,

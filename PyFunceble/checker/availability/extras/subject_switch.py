@@ -146,7 +146,7 @@ class SubjectSwitchRulesHandler(ExtraRuleHandlerBase):
 
                 if not self.status.status_after_extra_rules:
                     self._switch_down_by_history()
-        except PyFunceble.factory.Requester.exceptions.RequestException:
+        except self.requester.exceptions.RequestException:
             pass
 
         PyFunceble.facility.Logger.info(

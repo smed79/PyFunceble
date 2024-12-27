@@ -50,12 +50,13 @@ License:
     limitations under the License.
 """
 
+import secrets
 from typing import Optional
 
 import requests.adapters
+import requests.exceptions
 import requests.models
 
-import PyFunceble.storage
 from PyFunceble.checker.syntax.ip import IPSyntaxChecker
 from PyFunceble.query.dns.query_tool import DNSQueryTool
 
@@ -66,10 +67,15 @@ class RequestAdapterBase(requests.adapters.HTTPAdapter):
     adapter.
     """
 
+    NOT_RESOLVED_STD_HOSTNAME: str = (
+        f"{secrets.token_hex(12)}.mock-resolver.pyfunceble.com"
+    )
+
     resolving_cache: dict = {}
     resolving_use_cache: bool = False
     timeout: float = 5.0
     proxy_pattern: dict = {}
+    ssl_context: Optional[dict] = None
 
     def __init__(self, *args, **kwargs):
         if "timeout" in kwargs:
@@ -93,6 +99,10 @@ class RequestAdapterBase(requests.adapters.HTTPAdapter):
         else:
             self.proxy_pattern = {}
 
+        if "ssl_context" in kwargs:
+            self.ssl_context = kwargs["ssl_context"]
+            del kwargs["ssl_context"]
+
         super().__init__(*args, **kwargs)
 
     @staticmethod
@@ -102,9 +112,7 @@ class RequestAdapterBase(requests.adapters.HTTPAdapter):
         given domain.
         """
 
-        raise PyFunceble.factory.Requester.exceptions.ConnectionError(
-            "Could not resolve."
-        )
+        raise requests.exceptions.ConnectionError("Could not resolve.")
 
     @staticmethod
     def extract_extension(subject: str) -> Optional[str]:
@@ -286,3 +294,27 @@ class RequestAdapterBase(requests.adapters.HTTPAdapter):
                 return self.resolve_with_cache(hostname)
             return self.resolve_without_cache(hostname)
         return None
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        """
+        Overwrite the upstream :code:`init_poolmanager` method to ensure that we
+        use our own ssl context - when given.
+        """
+
+        _ = pool_kwargs.pop("ssl_context", None)
+
+        return super().init_poolmanager(
+            connections, maxsize, block, ssl_context=self.ssl_context, **pool_kwargs
+        )
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        """
+        Overwrite the upstream :code:`proxy_manager_for` method to ensure that we
+        use our own ssl context - when given.
+        """
+
+        _ = proxy_kwargs.pop("ssl_context", None)
+
+        return super().proxy_manager_for(
+            proxy, ssl_context=self.ssl_context, **proxy_kwargs
+        )

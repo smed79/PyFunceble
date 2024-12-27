@@ -54,7 +54,6 @@ from typing import Any, Optional, Tuple
 
 import PyFunceble.cli.storage
 import PyFunceble.facility
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.cli.processes.workers.file_sorter_base import FileSorterWorkerBase
 

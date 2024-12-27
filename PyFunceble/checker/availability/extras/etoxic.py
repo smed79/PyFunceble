@@ -50,7 +50,6 @@ License:
     limitations under the License.
 """
 
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.availability.extras.base import ExtraRuleHandlerBase
 

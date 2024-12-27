@@ -55,7 +55,6 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 import PyFunceble.facility
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.base import CheckerBase
 from PyFunceble.checker.reputation.params import ReputationCheckerParams

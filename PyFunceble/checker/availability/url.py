@@ -51,7 +51,6 @@ License:
 """
 
 import PyFunceble.facility
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.availability.base import AvailabilityCheckerBase
 from PyFunceble.checker.availability.status import AvailabilityCheckerStatus

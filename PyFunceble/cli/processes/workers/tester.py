@@ -55,7 +55,6 @@ from typing import Any, Optional, Tuple
 
 import PyFunceble.cli.utils.testing
 import PyFunceble.facility
-import PyFunceble.factory
 from PyFunceble.checker.availability.domain_and_ip import DomainAndIPAvailabilityChecker
 from PyFunceble.checker.availability.url import URLAvailabilityChecker
 from PyFunceble.checker.base import CheckerBase
@@ -209,13 +208,10 @@ class TesterWorker(WorkerBase):
         queue.
         """
 
-        if (
-            PyFunceble.factory.Requester.session
-            and "Connection" not in PyFunceble.factory.Requester.session.headers
-        ):
+        if "Connection" not in self.requester.headers:
             # Just close the connection immediately. This prevent potential infinite
             # streams.
-            PyFunceble.factory.Requester.session.headers["Connection"] = "close"
+            self.requester.session.headers["Connection"] = "close"
 
         if not isinstance(consumed, dict):
             PyFunceble.facility.Logger.debug(

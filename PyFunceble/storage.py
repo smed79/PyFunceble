@@ -52,7 +52,6 @@ License:
 """
 
 import os
-import secrets
 from typing import Optional
 
 from box import Box
@@ -72,8 +71,6 @@ ENV_FILENAME: str = ".pyfunceble-env"
 
 SHORT_REPO_LINK: str = "https://pyfunceble.github.io"
 REPO_LINK: str = "https://github.com/funilrys/PyFunceble"
-
-NOT_RESOLVED_STD_HOSTNAME: str = f"{secrets.token_hex(12)}.mock-resolver.pyfunceble.com"
 
 IANA: Optional[dict] = {}
 PUBLIC_SUFFIX: Optional[dict] = {}

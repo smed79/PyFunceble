@@ -455,7 +455,16 @@ class SystemLauncher(SystemBase):
             """
 
             if URLSyntaxChecker(file).is_valid():
-                DownloadHelper(file).download_text(destination=destination)
+                DownloadHelper(
+                    file,
+                    certificate_validation=(
+                        PyFunceble.storage.CONFIGURATION.verify_ssl_certificate
+                        if PyFunceble.storage.CONFIGURATION
+                        else True
+                    ),
+                    own_proxy_handler=True,
+                    proxies=PyFunceble.storage.PROXY,
+                ).download_text(destination=destination)
                 return True
             return False
 

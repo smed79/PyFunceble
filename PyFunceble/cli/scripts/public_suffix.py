@@ -165,7 +165,20 @@ class PublicSuffixGenerator:
         Starts the generation of the dataset file.
         """
 
-        raw_data = DownloadHelper(self.UPSTREAM_LINK).download_text().split("\n")
+        raw_data = (
+            DownloadHelper(
+                self.UPSTREAM_LINK,
+                certificate_validation=(
+                    PyFunceble.storage.CONFIGURATION.verify_ssl_certificate
+                    if PyFunceble.storage.CONFIGURATION
+                    else True
+                ),
+                own_proxy_handler=True,
+                proxies=PyFunceble.storage.PROXY,
+            )
+            .download_text()
+            .split("\n")
+        )
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(self.parse_line, raw_data):

@@ -57,7 +57,6 @@ from typing import List, Optional, Tuple
 from domain2idna import domain2idna
 
 import PyFunceble.facility
-import PyFunceble.factory
 import PyFunceble.storage
 from PyFunceble.checker.status_base import CheckerStatusBase
 from PyFunceble.cli.processes.workers.base import WorkerBase
@@ -86,8 +85,7 @@ class MinerWorker(WorkerBase):
 
         return super().__post_init__()
 
-    @staticmethod
-    def mine_from(subject: str) -> Optional[List[str]]:
+    def mine_from(self, subject: str) -> Optional[List[str]]:
         """
         Given the subject to work from, try to get the related subjects.
 
@@ -99,7 +97,7 @@ class MinerWorker(WorkerBase):
         result = []
 
         try:
-            req = PyFunceble.factory.Requester.get(subject, allow_redirects=True)
+            req = self.requester.get(subject, allow_redirects=True)
 
             for element in req.history:
                 if "location" in element.headers:
@@ -107,11 +105,11 @@ class MinerWorker(WorkerBase):
 
             result.extend([x for x in req.history if isinstance(x, str)])
         except (
-            PyFunceble.factory.Requester.exceptions.RequestException,
-            PyFunceble.factory.Requester.exceptions.ConnectionError,
-            PyFunceble.factory.Requester.exceptions.Timeout,
-            PyFunceble.factory.Requester.exceptions.InvalidURL,
-            PyFunceble.factory.Requester.urllib3_exceptions.InvalidHeader,
+            self.requester.exceptions.RequestException,
+            self.requester.exceptions.ConnectionError,
+            self.requester.exceptions.Timeout,
+            self.requester.exceptions.InvalidURL,
+            self.requester.urllib3_exceptions.InvalidHeader,
             socket.timeout,
         ):
             PyFunceble.facility.Logger.error(

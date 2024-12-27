@@ -62,7 +62,9 @@ import PyFunceble.cli.facility
 import PyFunceble.cli.factory
 import PyFunceble.facility
 import PyFunceble.sessions
+import PyFunceble.storage
 from PyFunceble.cli.continuous_integration.base import ContinuousIntegrationBase
+from PyFunceble.query.requests.requester import Requester
 
 
 class WorkerBase(multiprocessing.Process):
@@ -99,6 +101,7 @@ class WorkerBase(multiprocessing.Process):
     _exception: Optional[multiprocessing.Pipe] = None
 
     _params: Optional[dict] = {}
+    requester: Optional[Requester] = None
 
     def __init__(
         self,
@@ -148,6 +151,8 @@ class WorkerBase(multiprocessing.Process):
         """
         A method which will be executed after the :code:`__init__` method.
         """
+
+        self.requester = Requester(config=PyFunceble.storage.CONFIGURATION)
 
     @property
     def exception(self):
@@ -280,9 +285,6 @@ class WorkerBase(multiprocessing.Process):
             PyFunceble.facility.ConfigLoader.start()
             PyFunceble.cli.facility.CredentialLoader.start()
             PyFunceble.cli.factory.DBSession.init_db_sessions()
-
-        # Be sure that all settings are loaded proprely!!
-        PyFunceble.factory.Requester = PyFunceble.factory.requester()
 
         wait_for_stop = (
             bool(PyFunceble.storage.CONFIGURATION.cli_testing.mining) is True

@@ -50,6 +50,7 @@ License:
     limitations under the License.
 """
 
+import ipaddress
 from typing import List, Optional, Tuple
 
 import dns.exception
@@ -79,14 +80,18 @@ class Nameservers:
 
     protocol: Optional[str] = None
 
-    domain_syntax_checker: DomainSyntaxChecker = DomainSyntaxChecker()
-    url_syntax_checker: URLSyntaxChecker = URLSyntaxChecker()
-    url2netloc: Url2Netloc = Url2Netloc()
+    domain_syntax_checker: Optional[DomainSyntaxChecker] = None
+    url_syntax_checker: Optional[URLSyntaxChecker] = None
+    url2netloc: Optional[Url2Netloc] = None
 
     def __init__(
         self, nameserver: Optional[List[str]] = None, protocol: str = "TCP"
     ) -> None:
         self.protocol = protocol
+
+        self.domain_syntax_checker = DomainSyntaxChecker()
+        self.url_syntax_checker = URLSyntaxChecker()
+        self.url2netloc = Url2Netloc()
 
         if nameserver is not None:
             self.set_nameservers(nameserver)
@@ -141,7 +146,10 @@ class Nameservers:
 
         result = []
 
-        if cls.domain_syntax_checker.set_subject(nameserver).is_valid():
+        try:
+            _ = ipaddress.ip_address(nameserver)
+            result.append(nameserver)
+        except ValueError:
             try:
                 result.extend(
                     [
@@ -161,8 +169,6 @@ class Nameservers:
                 )
             except dns.exception.DNSException:
                 pass
-        else:
-            result.append(nameserver)
 
         PyFunceble.facility.Logger.debug(
             "IP from nameserver (%r):\n%r", nameserver, result
