@@ -196,6 +196,30 @@ class UserAgentDataset(DatasetBase):
             and bool(self[browser_short_name.lower()][platform.lower()])
         )
 
+    def format_user_agent(
+        self, user_agent: str, *, reference: Optional[str] = None
+    ) -> str:
+        """
+        Given a user agent and a reference, it returns the formatted user agent
+        that we have to use.
+
+        :param user_agent:
+            The user agent to format.
+        :param reference:
+            The reference to append to the user agent.
+
+        :return:
+            The formatted user agent.
+        """
+
+        user_agent = user_agent.strip()
+
+        if reference:
+            if user_agent.endswith(";"):
+                return f"{user_agent} +{reference}"
+            return f"{user_agent}; +{reference}"
+        return user_agent
+
     def get_latest(self) -> str:
         """
         Provides the latest user agent for the given platform.
@@ -205,12 +229,19 @@ class UserAgentDataset(DatasetBase):
             (if exists).
         """
 
+        reference = None
+
         if PyFunceble.storage.CONFIGURATION:
+            reference = PyFunceble.storage.CONFIGURATION.user_agent.reference
+
             if (
                 PyFunceble.storage.CONFIGURATION.user_agent
                 and PyFunceble.storage.CONFIGURATION.user_agent.custom
             ):
-                return PyFunceble.storage.CONFIGURATION.user_agent.custom
+                return self.format_user_agent(
+                    PyFunceble.storage.CONFIGURATION.user_agent.custom,
+                    reference=reference,
+                )
 
             self.set_preferred(
                 PyFunceble.storage.CONFIGURATION.user_agent.browser,
@@ -220,6 +251,9 @@ class UserAgentDataset(DatasetBase):
         result = self[self.preferred_browser][self.preferred_platform]
 
         if isinstance(result, (list, tuple)):
-            return secrets.choice(result)
+            return self.format_user_agent(
+                secrets.choice(result),
+                reference=reference,
+            )
 
-        return result
+        return self.format_user_agent(result, reference=reference)

@@ -378,7 +378,9 @@ DEFAULT_CONFIG: dict = {
     },
     "platform": {
         "push": False,
-        "preferred_data_origin": "frequent",
+        "preferred_status_origin": "frequent",
+        "checker_priority": ["none"],
+        "checker_exclude": ["none"],
     },
     "debug": {"active": False, "level": "info"},
     "dns": {
@@ -462,6 +464,11 @@ DEFAULT_CONFIG: dict = {
     },
     "proxy": {"global": {"http": None, "https": None}, "rules": []},
     "share_logs": False,
-    "user_agent": {"browser": "chrome", "custom": None, "platform": "linux"},
+    "user_agent": {
+        "browser": "chrome",
+        "custom": None,
+        "platform": "linux",
+        "reference": None,
+    },
     "verify_ssl_certificate": False,
 }

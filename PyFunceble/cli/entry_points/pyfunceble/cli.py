@@ -103,6 +103,9 @@ def get_configured_value(
     else:
         result = PyFunceble.facility.ConfigLoader.get_configured_value(entry)
 
+    if isinstance(result, str) and "%" in result:
+        result = result.replace("%", "%%")
+
     if negate:
         result = not result
 
@@ -589,6 +592,18 @@ def get_test_control_group_data() -> List[Tuple[List[str], dict]]:
         ),
         (
             [
+                "--user-agent-reference",
+            ],
+            {
+                "dest": "user_agent.reference",
+                "type": str,
+                "help": "Sets the reference to append to the user agent.\n\n"
+                "This is useful when you want to add a reference to the "
+                "user agent. %s" % get_configured_value("user_agent.reference"),
+            },
+        ),
+        (
+            [
                 "-vsc",
                 "--verify-ssl-certificate",
             ],
@@ -831,15 +846,6 @@ def get_output_control_group_data() -> List[Tuple[List[str], dict]]:
                 "Multiple space separated statuses can be given."
                 "%s" % get_configured_value("cli_testing.display_mode.status"),
                 "default": "all",
-            },
-        ),
-        (
-            ["--display-datetime"],
-            {
-                "dest": "cli_testing.display_mode.datetime",
-                "action": "store_true",
-                "help": "Activates or disables the display of the datetime of the\n"
-                "test. %s" % get_configured_value("cli_testing.display_mode.datetime"),
             },
         ),
         (
