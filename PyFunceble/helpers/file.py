@@ -201,12 +201,16 @@ class FileHelper:
 
         return open(self.path, *args, **kwargs)  # pylint: disable=unspecified-encoding
 
-    def copy(self, destination: str) -> "FileHelper":
+    def copy(self, destination: str, *, create_parent: bool = False) -> "FileHelper":
         """
         Copy the globaly given file path to the given destination.
 
         :param str destination: The destination of the copy.
+        :param bool create_parent: Tell us if we have to create the parent directory.
         """
+
+        if create_parent:
+            DirectoryHelper(os.path.dirname(destination)).create()
 
         if self.exists():
             shutil.copy(self.path, destination)

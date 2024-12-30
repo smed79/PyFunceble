@@ -442,7 +442,7 @@ class ConfigLoader:
         if not self.is_already_loaded():
             if not self.file_helper.set_path(self.path_to_config).exists():
                 self.file_helper.set_path(self.path_to_default_config).copy(
-                    self.path_to_config
+                    self.path_to_config, create_parent=True
                 )
 
         return self
@@ -515,7 +515,7 @@ class ConfigLoader:
             config = self.dict_helper.from_yaml_file(self.path_to_config)
         except (MarkedYAMLError, FileNotFoundError):
             self.file_helper.set_path(self.path_to_default_config).copy(
-                self.path_to_config
+                self.path_to_config, create_parent=True
             )
             config = self.dict_helper.from_yaml_file(self.path_to_config)
 
